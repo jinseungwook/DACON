@@ -1,73 +1,137 @@
-# phishing-detector
+# 🛡️ 피싱/스캠 탐지 챗봇
 
-This template should help get you started developing with Vue 3 in Vite.
+Vue.js 기반 피싱 및 스캠 메시지 탐지 웹 애플리케이션입니다.
 
-## Recommended IDE Setup
+## 📋 프로젝트 소개
 
-[VS Code](https://code.visualstudio.com/) + [Vue (Official)](https://marketplace.visualstudio.com/items?itemName=Vue.volar) (and disable Vetur).
+의심스러운 문자 메시지나 이미지를 업로드하면 실시간으로 피싱/스캠 위험도를 분석하고 경고해주는 챗봇 인터페이스입니다.
 
-## Recommended Browser Setup
+## ✨ 주요 기능
 
-- Chromium-based browsers (Chrome, Edge, Brave, etc.):
-  - [Vue.js devtools](https://chromewebstore.google.com/detail/vuejs-devtools/nhdogjmejiglipccpnnnanhbledajbpd)
-  - [Turn on Custom Object Formatter in Chrome DevTools](http://bit.ly/object-formatters)
-- Firefox:
-  - [Vue.js devtools](https://addons.mozilla.org/en-US/firefox/addon/vue-js-devtools/)
-  - [Turn on Custom Object Formatter in Firefox DevTools](https://fxdx.dev/firefox-devtools-custom-object-formatters/)
+- 📝 **텍스트 분석**: 7가지 카테고리의 피싱 패턴 탐지
+- 🖼️ **이미지 업로드**: 의심스러운 이미지 첨부 가능
+- 📊 **위험도 평가**: 5단계 위험도 분류 (안전 ~ 매우 위험)
+- 💡 **맞춤형 권장사항**: 위험도에 따른 구체적인 대응 방법 제시
+- 🎨 **프리미엄 디자인**: 그라디언트, 애니메이션, 반응형 레이아웃
+- 🌙 **다크 모드**: 눈의 피로를 줄이는 다크 테마 지원
 
-## Type Support for `.vue` Imports in TS
+## 🔍 탐지 패턴
 
-TypeScript cannot handle type information for `.vue` imports by default, so we replace the `tsc` CLI with `vue-tsc` for type checking. In editors, we need [Volar](https://marketplace.visualstudio.com/items?itemName=Vue.volar) to make the TypeScript language service aware of `.vue` types.
+| 카테고리 | 키워드 예시 | 가중치 |
+|---------|-----------|--------|
+| 긴급성 | 긴급, 즉시, 24시간 | 2.5 |
+| 금전 요구 | 송금, 계좌, 입금 | 3.0 |
+| 개인정보 | 주민번호, 비밀번호 | 3.5 |
+| 기관 사칭 | 경찰, 국세청, 은행 | 2.0 |
+| 위협 | 법적조치, 고소, 압류 | 3.0 |
+| 링크 | http, 클릭, 접속 | 2.0 |
+| 연락 요청 | 연락주세요, 회신 | 1.5 |
 
-## Customize configuration
+## 🚀 시작하기
 
-See [Vite Configuration Reference](https://vite.dev/config/).
+### 필수 요구사항
 
-## Project Setup
+- Node.js 16.x 이상
+- npm 또는 yarn
 
-```sh
+### 설치 방법
+
+```bash
+# 저장소 클론
+git clone https://github.com/jinseungwook/DACON.git
+cd DACON
+
+# 의존성 설치
 npm install
-```
 
-### Compile and Hot-Reload for Development
-
-```sh
+# 개발 서버 실행
 npm run dev
 ```
 
-### Type-Check, Compile and Minify for Production
+브라우저에서 http://localhost:5173/ 접속
 
-```sh
-npm run build
-```
+### 빌드
 
-### Run Unit Tests with [Vitest](https://vitest.dev/)
-
-```sh
-npm run test:unit
-```
-
-### Run End-to-End Tests with [Playwright](https://playwright.dev)
-
-```sh
-# Install browsers for the first run
-npx playwright install
-
-# When testing on CI, must build the project first
+```bash
+# 프로덕션 빌드
 npm run build
 
-# Runs the end-to-end tests
-npm run test:e2e
-# Runs the tests only on Chromium
-npm run test:e2e -- --project=chromium
-# Runs the tests of a specific file
-npm run test:e2e -- tests/example.spec.ts
-# Runs the tests in debug mode
-npm run test:e2e -- --debug
+# 빌드 결과 미리보기
+npm run preview
 ```
 
-### Lint with [ESLint](https://eslint.org/)
+## 📱 사용 방법
 
-```sh
-npm run lint
+1. 웹 브라우저에서 애플리케이션 열기
+2. 의심스러운 메시지를 입력창에 입력
+3. 또는 이미지 아이콘을 클릭하여 스크린샷 업로드
+4. 전송 버튼 클릭
+5. 분석 결과 및 권장사항 확인
+
+## 🧪 테스트 예시
+
+### 높은 위험도 메시지
 ```
+긴급! 국세청입니다. 24시간 이내 계좌번호와 주민번호를 
+회신하지 않으면 법적조치가 취해집니다. 즉시 송금하세요.
+```
+
+### 안전한 메시지
+```
+안녕하세요! 오늘 날씨가 정말 좋네요.
+```
+
+## 🛠️ 기술 스택
+
+- **Frontend**: Vue 3 (Composition API)
+- **Build Tool**: Vite
+- **Styling**: Vanilla CSS (CSS Variables)
+- **Font**: Noto Sans KR (Google Fonts)
+
+## 📁 프로젝트 구조
+
+```
+phishing-detector/
+├── src/
+│   ├── components/
+│   │   ├── ChatInterface.vue
+│   │   ├── MessageBubble.vue
+│   │   └── MessageInput.vue
+│   ├── utils/
+│   │   └── phishingDetector.js
+│   ├── assets/
+│   │   └── main.css
+│   ├── App.vue
+│   └── main.js
+├── package.json
+└── vite.config.js
+```
+
+## ⚠️ 주의사항
+
+이 애플리케이션은 **교육 및 데모 목적**으로 제작되었습니다.
+
+- 클라이언트 사이드에서만 작동 (키워드 기반 패턴 매칭)
+- AI 모델이나 머신러닝을 사용하지 않음
+- 실제 프로덕션 환경에서는 백엔드 API 통합 필요
+
+## 🔮 향후 개선 계획
+
+- [ ] OpenAI API 통합 (GPT 기반 분석)
+- [ ] OCR 기능 추가 (이미지 텍스트 추출)
+- [ ] 백엔드 서버 구축
+- [ ] 데이터베이스 연동
+- [ ] 사용자 인증 시스템
+- [ ] 머신러닝 모델 통합
+
+## 📄 라이선스
+
+MIT License
+
+## 👤 작성자
+
+jinseungwook
+
+## 🙏 기여
+
+이슈 제보 및 Pull Request를 환영합니다!
