@@ -4,11 +4,6 @@
       <!-- 텍스트 메시지 -->
       <p v-if="message.text" class="message-text">{{ message.text }}</p>
       
-      <!-- 이미지 -->
-      <div v-if="message.image" class="message-image">
-        <img :src="message.image" :alt="message.imageAlt || '업로드된 이미지'" />
-      </div>
-      
       <!-- 위험도 분석 결과 -->
       <div v-if="message.analysis" class="analysis-result">
         <div class="risk-header">
@@ -88,12 +83,13 @@ export default {
 
 <style scoped>
 .message-bubble {
-  max-width: 70%;
+  max-width: 80%;
   padding: var(--spacing-md);
   border-radius: var(--border-radius-lg);
   margin-bottom: var(--spacing-md);
   box-shadow: var(--shadow-sm);
   word-wrap: break-word;
+  position: relative;
 }
 
 .message-bubble.user {
@@ -112,46 +108,34 @@ export default {
   animation: slideInLeft var(--transition-normal) ease-out;
 }
 
-.message-content {
-  margin-bottom: var(--spacing-sm);
-}
-
 .message-text {
   margin: 0;
-  line-height: 1.5;
+  line-height: 1.6;
   white-space: pre-wrap;
-}
-
-.message-image {
-  margin-top: var(--spacing-sm);
-  border-radius: var(--border-radius-md);
-  overflow: hidden;
-}
-
-.message-image img {
-  width: 100%;
-  max-width: 300px;
-  height: auto;
-  display: block;
+  font-size: 1rem;
 }
 
 .message-time {
-  font-size: 0.75rem;
-  opacity: 0.7;
+  font-size: 0.7rem;
+  opacity: 0.6;
   text-align: right;
-  margin-top: var(--spacing-xs);
+  margin-top: var(--spacing-sm);
+}
+
+.user .message-time {
+  color: rgba(255, 255, 255, 0.8);
 }
 
 /* 분석 결과 스타일 */
 .analysis-result {
   margin-top: var(--spacing-md);
   padding: var(--spacing-md);
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(0, 0, 0, 0.05);
   border-radius: var(--border-radius-md);
 }
 
-.message-bubble.bot .analysis-result {
-  background: var(--bg-tertiary);
+[data-theme="dark"] .analysis-result {
+  background: rgba(255, 255, 255, 0.05);
 }
 
 .risk-header {
@@ -159,102 +143,92 @@ export default {
   align-items: center;
   gap: var(--spacing-sm);
   margin-bottom: var(--spacing-sm);
-  font-weight: 600;
-}
-
-.risk-emoji {
-  font-size: 1.5rem;
-}
-
-.risk-label {
-  flex: 1;
-}
-
-.risk-score {
-  font-size: 1.25rem;
   font-weight: 700;
 }
 
+.risk-emoji {
+  font-size: 1.4rem;
+}
+
+.risk-score {
+  margin-left: auto;
+  font-size: 1.1rem;
+  color: var(--color-primary-dark);
+}
+
+[data-theme="dark"] .risk-score {
+  color: var(--color-primary-light);
+}
+
 .risk-bar {
-  height: 12px;
+  height: 8px;
   background: rgba(0, 0, 0, 0.1);
-  border-radius: 6px;
+  border-radius: 4px;
   overflow: hidden;
   margin-bottom: var(--spacing-md);
 }
 
+[data-theme="dark"] .risk-bar {
+  background: rgba(255, 255, 255, 0.1);
+}
+
 .risk-bar-fill {
   height: 100%;
-  transition: width 0.8s ease-out;
-  border-radius: 6px;
+  transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
+  border-radius: 4px;
 }
 
 .detected-patterns,
 .recommendations {
   margin-top: var(--spacing-md);
+  padding-top: var(--spacing-sm);
+  border-top: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+[data-theme="dark"] .detected-patterns,
+[data-theme="dark"] .recommendations {
+  border-top-color: rgba(255, 255, 255, 0.05);
 }
 
 .detected-patterns h4,
 .recommendations h4 {
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   margin-bottom: var(--spacing-sm);
-  font-weight: 600;
+  color: var(--text-secondary);
 }
 
 .detected-patterns ul,
 .recommendations ul {
   list-style: none;
-  padding-left: 0;
+  padding: 0;
+  margin: 0;
 }
 
 .detected-patterns li,
 .recommendations li {
-  padding: var(--spacing-xs) 0;
+  margin-bottom: var(--spacing-xs);
   font-size: 0.9rem;
   line-height: 1.4;
 }
 
-.detected-patterns li {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-xs);
-}
-
 .keywords {
-  font-size: 0.85rem;
-  opacity: 0.8;
-  font-style: italic;
+  display: block;
+  font-size: 0.8rem;
+  opacity: 0.7;
+  margin-top: 2px;
 }
 
-/* 위험도별 색상 */
-.message-bubble.bot.risk-critical {
-  border-left: 4px solid #dc2626;
-}
+/* 위험도별 경계선 */
+.message-bubble.bot.risk-critical { border-left: 4px solid var(--color-danger); }
+.message-bubble.bot.risk-high { border-left: 4px solid var(--color-danger); opacity: 0.95; }
+.message-bubble.bot.risk-medium { border-left: 4px solid var(--color-warning); }
+.message-bubble.bot.risk-low { border-left: 4px solid var(--color-info); }
+.message-bubble.bot.risk-safe { border-left: 4px solid var(--color-success); }
 
-.message-bubble.bot.risk-high {
-  border-left: 4px solid #ef4444;
-}
-
-.message-bubble.bot.risk-medium {
-  border-left: 4px solid #f59e0b;
-}
-
-.message-bubble.bot.risk-low {
-  border-left: 4px solid #3b82f6;
-}
-
-.message-bubble.bot.risk-safe {
-  border-left: 4px solid #10b981;
-}
-
-/* 반응형 */
 @media (max-width: 768px) {
   .message-bubble {
-    max-width: 85%;
-  }
-  
-  .message-image img {
-    max-width: 100%;
+    max-width: 90%;
   }
 }
+</style>
 </style>

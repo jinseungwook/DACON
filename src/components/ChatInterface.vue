@@ -3,8 +3,8 @@
     <!-- 헤더 -->
     <div class="chat-header">
       <div class="header-content">
-        <h1>🛡️ 피싱/스캠 탐지 챗봇</h1>
-        <p>의심스러운 메시지를 분석해드립니다</p>
+        <h1>🛡️ 피싱 탐지 챗봇</h1>
+        <p>텍스트를 분석하여 피싱/스캠 위험을 알려드립니다</p>
       </div>
     </div>
     
@@ -19,18 +19,18 @@
           <div class="features">
             <div class="feature">
               <span class="feature-icon">📝</span>
-              <span>텍스트 분석</span>
+              <span>정밀 문장 분석</span>
             </div>
             <div class="feature">
-              <span class="feature-icon">🖼️</span>
-              <span>이미지 분석</span>
+              <span class="feature-icon">⚖️</span>
+              <span>위험도 평가</span>
             </div>
             <div class="feature">
-              <span class="feature-icon">⚡</span>
-              <span>즉시 결과</span>
+              <span class="feature-icon">🛡️</span>
+              <span>대응방법 가이드</span>
             </div>
           </div>
-          <p class="welcome-hint">의심스러운 메시지를 입력하거나 이미지를 업로드해보세요!</p>
+          <p class="welcome-hint">의심스러운 문자 내용이나 카톡 메시지를 입력해 보세요!</p>
         </div>
         
         <!-- 메시지 목록 -->
@@ -80,7 +80,6 @@ export default {
         id: this.messageIdCounter++,
         type: 'user',
         text: messageData.text,
-        image: messageData.image,
         timestamp: messageData.timestamp
       };
       
@@ -90,38 +89,20 @@ export default {
       // 봇 응답 생성
       this.isTyping = true;
       
-      // 실제 환경에서는 약간의 지연을 시뮬레이션
-      await new Promise(resolve => setTimeout(resolve, 800));
+      // 분석 수행
+      const analysis = analyzeText(messageData.text);
       
-      let botResponse;
+      // 응답 지연 시뮬레이션
+      await new Promise(resolve => setTimeout(resolve, 600));
       
-      if (messageData.image) {
-        // 이미지 분석 (현재는 시뮬레이션)
-        botResponse = {
-          id: this.messageIdCounter++,
-          type: 'bot',
-          text: '이미지를 분석했습니다. 실제 환경에서는 OCR 및 이미지 분석 API를 통해 텍스트를 추출하고 분석합니다.',
-          timestamp: new Date()
-        };
-        
-        // 이미지에서 텍스트가 있다면 추가 분석
-        if (messageData.text) {
-          const analysis = analyzeText(messageData.text);
-          botResponse.analysis = analysis;
-          botResponse.riskLevel = analysis.riskLevel;
-        }
-      } else if (messageData.text) {
-        // 텍스트 분석
-        const analysis = analyzeText(messageData.text);
-        botResponse = {
-          id: this.messageIdCounter++,
-          type: 'bot',
-          text: this.generateResponseText(analysis),
-          analysis: analysis,
-          riskLevel: analysis.riskLevel,
-          timestamp: new Date()
-        };
-      }
+      const botResponse = {
+        id: this.messageIdCounter++,
+        type: 'bot',
+        text: this.generateResponseText(analysis),
+        analysis: analysis,
+        riskLevel: analysis.riskLevel,
+        timestamp: new Date()
+      };
       
       this.isTyping = false;
       this.messages.push(botResponse);
@@ -132,15 +113,15 @@ export default {
       const { riskLevel, riskScore } = analysis;
       
       if (riskLevel === 'safe') {
-        return '분석 결과, 의심스러운 패턴이 발견되지 않았습니다. 하지만 항상 주의하세요!';
+        return '분석 결과, 정상적인 메시지로 판단됩니다. 하지만 모르는 번호의 연락은 언제나 주의하세요!';
       } else if (riskLevel === 'low') {
-        return `약간의 주의가 필요한 메시지입니다. (위험도: ${riskScore}%)`;
+        return `분석 결과 위험도가 낮지만, 일부 의심스러운 표현이 포함되어 있습니다. (위험도: ${riskScore}%)`;
       } else if (riskLevel === 'medium') {
-        return `의심스러운 패턴이 발견되었습니다. 주의가 필요합니다. (위험도: ${riskScore}%)`;
+        return `⚠️ 주의가 필요합니다. 전형적인 스캠 패턴이 일부 발견되었습니다. (위험도: ${riskScore}%)`;
       } else if (riskLevel === 'high') {
-        return `⚠️ 높은 위험도의 피싱/스캠 메시지로 판단됩니다! (위험도: ${riskScore}%)`;
+        return `🚨 위험합니다! 피싱 메시지일 확률이 매우 높습니다. (위험도: ${riskScore}%)`;
       } else {
-        return `🚨 매우 위험한 피싱/스캠 메시지입니다! 즉시 삭제하고 신고하세요! (위험도: ${riskScore}%)`;
+        return `🔴 절대 대응하지 마세요! 매우 치명적인 피싱/스캠 메시지입니다. (위험도: ${riskScore}%)`;
       }
     },
     
