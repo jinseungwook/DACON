@@ -82,7 +82,9 @@ export async function sendPhishingEmail(targetEmail, scenarioId) {
   }
 
   // "Gotcha" 페이지로 연결되는 링크 생성
-  const trainingLink = `${window.location.origin}/?id=${scenarioId}`;
+  // 배포된 URL 사용 (상대방이 이메일에서 클릭할 수 있도록)
+  const productionUrl = 'https://jinseungwook.github.io/DACON';
+  const trainingLink = `${productionUrl}/?id=${scenarioId}`;
 
   const templateParams = {
     to_email: targetEmail,
