@@ -7,7 +7,7 @@ import vueDevTools from 'vite-plugin-vue-devtools'
 
 // https://vite.dev/config/
 export default defineConfig({
-  base: './', // GitHub Pages 배포용
+  base: '/DACON/', // GitHub Pages 배포용 (저장소 이름)
   plugins: [
     vue(),
     vueJsx(),
