@@ -455,7 +455,7 @@ def get_risk_emoji(risk_level: str) -> str:
 if __name__ == "__main__":
     # 테스트 케이스
     test_cases = [
-        "안녕하세요. 회의 일정 공유드립니다.",
+        "sdlkfjaslfjewjf;lasjfwpsdf",
         "긴급! 국세청입니다. 세금 환급을 위해 계좌번호를 회신해주세요.",
         "당첨되셨습니다! 지금 즉시 링크를 클릭하여 상금을 수령하세요."
     ]
