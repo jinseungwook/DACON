@@ -3,13 +3,26 @@
     <!-- 헤더 -->
     <div class="chat-header">
       <div class="header-content">
-        <h1>🛡️ 피싱 탐지 챗봇</h1>
-        <p>텍스트를 분석하여 피싱/스캠 위험을 알려드립니다</p>
+        <h1>🛡️ 피싱 가드</h1>
+        <div class="mode-tabs">
+          <button 
+            :class="{ active: activeMode === 'detection' }" 
+            @click="activeMode = 'detection'"
+          >
+            🔍 피싱 탐지
+          </button>
+          <button 
+            :class="{ active: activeMode === 'simulation' }" 
+            @click="activeMode = 'simulation'"
+          >
+            🎯 모의 훈련
+          </button>
+        </div>
       </div>
     </div>
     
-    <!-- 메시지 영역 -->
-    <div class="messages-container" ref="messagesContainer">
+    <!-- 메시지 영역 (피싱 탐지 모드) -->
+    <div v-if="activeMode === 'detection'" class="messages-container" ref="messagesContainer">
       <div class="messages-wrapper">
         <!-- 환영 메시지 -->
         <div v-if="messages.length === 0" class="welcome-message">
@@ -49,9 +62,61 @@
         </div>
       </div>
     </div>
+
+    <!-- 모의 훈련 영역 (모의 훈련 모드) -->
+    <div v-if="activeMode === 'simulation'" class="simulation-container">
+      <div class="simulation-card">
+        <div class="simulation-header">
+          <h2>🎯 실전 모의 피싱 훈련</h2>
+          <p>실제 이메일을 발송하여 피싱 위험을 직접 체험해보세요.</p>
+        </div>
+
+        <div class="simulation-form">
+          <div class="form-group">
+            <label>받는 이메일 주소</label>
+            <input 
+              type="email" 
+              v-model="targetEmail" 
+              placeholder="예: example@gmail.com"
+              class="email-input"
+            />
+            <small>훈련 메일이 실제로 발송됩니다. 본인의 이메일을 입력하세요.</small>
+          </div>
+
+          <div class="form-group">
+            <label>훈련 시나리오 선택</label>
+            <div class="scenario-grid">
+              <div 
+                v-for="scenario in scenarios" 
+                :key="scenario.id"
+                class="scenario-item"
+                :class="{ selected: selectedScenarioId === scenario.id }"
+                @click="selectedScenarioId = scenario.id"
+              >
+                <div class="scenario-title">{{ scenario.title }}</div>
+                <div class="scenario-sender">{{ scenario.sender_name }}</div>
+              </div>
+            </div>
+          </div>
+
+          <button 
+            @click="handleSendSimulation" 
+            :disabled="isSending || !targetEmail"
+            class="send-btn"
+          >
+            <span v-if="isSending">📤 전송 중...</span>
+            <span v-else>🚀 훈련 메일 발송하기</span>
+          </button>
+        </div>
+
+        <div v-if="simulationStatus" :class="['status-msg', simulationStatus.type]">
+          {{ simulationStatus.message }}
+        </div>
+      </div>
+    </div>
     
-    <!-- 입력 영역 -->
-    <MessageInput @send-message="handleSendMessage" />
+    <!-- 입력 영역 (탐지 모드에서만 표시) -->
+    <MessageInput v-if="activeMode === 'detection'" @send-message="handleSendMessage" />
   </div>
 </template>
 
@@ -59,6 +124,7 @@
 import MessageBubble from './MessageBubble.vue';
 import MessageInput from './MessageInput.vue';
 import { analyzeText } from '../utils/phishingDetector.js';
+import { simulationScenarios, sendPhishingEmail } from '../utils/simulationManager.js';
 
 export default {
   name: 'ChatInterface',
@@ -68,9 +134,17 @@ export default {
   },
   data() {
     return {
+      activeMode: 'detection', // 'detection' or 'simulation'
       messages: [],
       isTyping: false,
-      messageIdCounter: 0
+      messageIdCounter: 0,
+      
+      // simulation state
+      targetEmail: '',
+      selectedScenarioId: simulationScenarios[0].id,
+      isSending: false,
+      simulationStatus: null,
+      scenarios: simulationScenarios
     };
   },
   methods: {
@@ -108,6 +182,28 @@ export default {
       this.messages.push(botResponse);
       this.scrollToBottom();
     },
+
+    async handleSendSimulation() {
+      if (!this.targetEmail) return;
+
+      this.isSending = true;
+      this.simulationStatus = { type: 'info', message: '훈련 메일을 발송하고 있습니다...' };
+
+      try {
+        await sendPhishingEmail(this.targetEmail, this.selectedScenarioId);
+        this.simulationStatus = { 
+          type: 'success', 
+          message: '✅ 훈련 메일이 발송되었습니다! 수신함을 확인하고 링크를 클릭해보세요.' 
+        };
+      } catch (error) {
+        this.simulationStatus = { 
+          type: 'error', 
+          message: `❌ 발송 실패: ${error.message || '설정을 확인해주세요.'}` 
+        };
+      } finally {
+        this.isSending = false;
+      }
+    },
     
     generateResponseText(analysis) {
       const { riskLevel, riskScore } = analysis;
@@ -126,6 +222,7 @@ export default {
     },
     
     scrollToBottom() {
+      if (this.activeMode !== 'detection') return;
       this.$nextTick(() => {
         const container = this.$refs.messagesContainer;
         if (container) {
@@ -157,17 +254,156 @@ export default {
   flex-shrink: 0;
 }
 
-.header-content h1 {
-  margin: 0;
-  font-size: 1.75rem;
-  font-weight: 700;
+.header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  max-width: 1200px;
+  margin: 0 auto;
+  width: 100%;
 }
 
-.header-content p {
-  margin: var(--spacing-xs) 0 0 0;
-  opacity: 0.9;
+.mode-tabs {
+  display: flex;
+  background: rgba(255, 255, 255, 0.1);
+  padding: 4px;
+  border-radius: 12px;
+  backdrop-filter: blur(4px);
+}
+
+.mode-tabs button {
+  background: transparent;
+  border: none;
+  color: white;
+  padding: 8px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.2s;
+  opacity: 0.7;
+}
+
+.mode-tabs button.active {
+  background: white;
+  color: #764ba2;
+  opacity: 1;
+}
+
+.simulation-container {
+  flex: 1;
+  padding: 40px 20px;
+  overflow-y: auto;
+  background: var(--bg-chat);
+  display: flex;
+  justify-content: center;
+}
+
+.simulation-card {
+  background: white;
+  width: 100%;
+  max-width: 600px;
+  padding: 40px;
+  border-radius: 24px;
+  box-shadow: var(--shadow-lg);
+  height: fit-content;
+}
+
+[data-theme='dark'] .simulation-card {
+  background: #1e1e1e;
+}
+
+.simulation-header h2 {
+  margin-top: 0;
+  font-size: 1.5rem;
+}
+
+.simulation-form {
+  margin-top: 30px;
+}
+
+.form-group {
+  margin-bottom: 25px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: bold;
+  color: var(--text-secondary);
+}
+
+.email-input {
+  width: 100%;
+  padding: 12px 16px;
+  border: 2px solid #e5e7eb;
+  border-radius: 12px;
+  font-size: 1rem;
+  background: transparent;
+}
+
+.form-group small {
+  display: block;
+  margin-top: 6px;
+  color: var(--text-tertiary);
+}
+
+.scenario-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.scenario-item {
+  border: 2px solid #e5e7eb;
+  padding: 15px;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.scenario-item.selected {
+  border-color: #764ba2;
+  background: rgba(118, 75, 162, 0.05);
+}
+
+.scenario-title {
+  font-weight: bold;
+  margin-bottom: 4px;
+}
+
+.scenario-sender {
+  font-size: 0.85rem;
+  color: var(--text-tertiary);
+}
+
+.send-btn {
+  width: 100%;
+  padding: 16px;
+  background: #764ba2;
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-size: 1.1rem;
+  font-weight: bold;
+  cursor: pointer;
+  margin-top: 20px;
+}
+
+.send-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.status-msg {
+  margin-top: 20px;
+  padding: 15px;
+  border-radius: 12px;
   font-size: 0.95rem;
 }
+
+.status-msg.info { background: #f3f4f6; }
+.status-msg.success { background: #ecfdf5; color: #065f46; }
+.status-msg.error { background: #fef2f2; color: #991b1b; }
 
 .messages-container {
   flex: 1;

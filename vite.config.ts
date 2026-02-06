@@ -7,6 +7,7 @@ import vueDevTools from 'vite-plugin-vue-devtools'
 
 // https://vite.dev/config/
 export default defineConfig({
+  base: './', // GitHub Pages 배포용
   plugins: [
     vue(),
     vueJsx(),

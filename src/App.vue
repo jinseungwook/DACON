@@ -1,8 +1,23 @@
 <script setup>
 import { ref } from 'vue';
 import ChatInterface from './components/ChatInterface.vue';
+import EducationalLanding from './components/EducationalLanding.vue';
 
 const isDarkMode = ref(false);
+const currentPage = ref('chat');
+const scenarioId = ref('');
+
+// URL 파라미터 체크 (모의 피싱 링크 클릭 시)
+const params = new URLSearchParams(window.location.search);
+if (params.has('id')) {
+  currentPage.value = 'gotcha';
+  scenarioId.value = params.get('id');
+}
+
+function returnToChat() {
+  currentPage.value = 'chat';
+  window.history.replaceState({}, '', window.location.pathname);
+}
 
 function toggleDarkMode() {
   isDarkMode.value = !isDarkMode.value;
@@ -15,8 +30,9 @@ function toggleDarkMode() {
 
 <template>
   <div id="app">
-    <!-- 다크 모드 토글 -->
+    <!-- 다크 모드 토글 (채팅 페이지에서만 표시) -->
     <button 
+      v-if="currentPage === 'chat'"
       @click="toggleDarkMode" 
       class="theme-toggle"
       :title="isDarkMode ? '라이트 모드로 전환' : '다크 모드로 전환'"
@@ -26,7 +42,14 @@ function toggleDarkMode() {
     </button>
     
     <!-- 메인 챗봇 인터페이스 -->
-    <ChatInterface />
+    <ChatInterface v-if="currentPage === 'chat'" />
+    
+    <!-- 교육용 랜딩 페이지 -->
+    <EducationalLanding 
+      v-if="currentPage === 'gotcha'" 
+      :scenario-id="scenarioId"
+      @return="returnToChat"
+    />
   </div>
 </template>
 
